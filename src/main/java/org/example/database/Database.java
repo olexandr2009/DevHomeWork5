@@ -1,5 +1,6 @@
 package org.example.database;
 
+import org.example.prefs.ConfigsNames;
 import org.example.prefs.Configurations;
 
 import java.sql.*;
@@ -10,15 +11,15 @@ public class Database {
     private Connection CONNECTION;
 
     public Database() {
-        this(Configurations.Configs.getConfigAsString(Configurations.DB_URL));
+        this(Configurations.Configs.getConfigAsString(ConfigsNames.DB_URL));
     }
 
     public Database(String dbURL) {
         try {
             CONNECTION = DriverManager.getConnection(
                     dbURL,
-                    Configurations.Configs.getConfigAsString(Configurations.USER_NAME_CONFIG_NAME),
-                    Configurations.Configs.getConfigAsString(Configurations.PASSWORD_CONFIG_NAME)
+                    Configurations.Configs.getConfigAsString(ConfigsNames.USER_NAME_CONFIG_NAME),
+                    Configurations.Configs.getConfigAsString(ConfigsNames.PASSWORD_CONFIG_NAME)
             );
         } catch (SQLException sqlEx) {
             sqlEx.printStackTrace();
@@ -37,12 +38,19 @@ public class Database {
     }
 
     public int executeUpdate(String sql) {
-        try (Statement st = CONNECTION.createStatement()) {
+        try (Statement st = getStatement()) {
             return st.executeUpdate(sql);
         } catch (SQLException sqlEx) {
             sqlEx.printStackTrace();
         }
         return -1;
+    }
+    public PreparedStatement getPreparedStatement(String sql) {
+        try {
+            return CONNECTION.prepareStatement(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Statement getStatement() {

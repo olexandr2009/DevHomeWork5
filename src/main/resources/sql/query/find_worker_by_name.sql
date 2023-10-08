@@ -1,0 +1,1 @@
+Select * from workers WHERE worker_name = ?;

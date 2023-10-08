@@ -4,12 +4,14 @@ import org.example.database.Database;
 import org.example.databaseInit.DatabaseInitService;
 import org.example.databasePopulate.DatabasePopulateService;
 import org.example.databaseQuery.queryClasses.*;
+import org.example.prefs.ConfigsNames;
 import org.example.prefs.Configurations;
 import org.junit.jupiter.api.*;
 
 
 import java.io.File;
 import java.sql.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +22,7 @@ class DatabaseQueryServiceTest {
 
     @BeforeAll
     static void initDataBase() {
-        database = new Database(Configurations.Configs.getConfigAsString(Configurations.TEST_DB_URL));
+        database = new Database(Configurations.Configs.getConfigAsString(ConfigsNames.TEST_DB_URL));
         DatabaseInitService.initDatabase(database);
         DatabasePopulateService.populate_db(database);
     }
@@ -28,13 +30,6 @@ class DatabaseQueryServiceTest {
     @BeforeEach
     void initDatabaseQueryService() {
         queryService = new DatabaseQueryService(database);
-    }
-
-    @AfterAll
-    static void dropDataBase() {
-        System.out.println(
-                new File(new Configurations().getConfigAsString(Configurations.TEST_DB_LOCATION_URL))
-                        .delete());
     }
 
     @Test
@@ -85,5 +80,61 @@ class DatabaseQueryServiceTest {
                 new ProjectPrice("Project J", 13200)
         };
         assertArrayEquals(expectedProjectPrices, queryService.getProjectsPrices().toArray());
+    }
+    @Test
+    void testFindClientByIdWorksCorrectly(){
+        Client client = new Client(2, "Bogdan");
+        assertEquals(client, queryService.findClientByID(client.getClient_id()));
+    }
+    @Test
+    void testFindClientByIdTooBig() {
+        assertNull(queryService.findClientByID(999999999));
+    }
+    @Test
+    void testFindClientByIdTooSmall() {
+        assertNull(queryService.findClientByID(-1));
+    }
+    @Test
+    void testFindClientsByNameWorksCorrectly(){
+        List<Client> expected = List.of(new Client(2, "Bogdan"));
+        assertArrayEquals(expected.toArray(), queryService.findClientsByName("Bogdan").toArray());
+    }
+
+    @Test
+    void testGetWorkerByIdMethodWorksCorrect() {
+        Worker worker = new Worker(1, Date.valueOf("1990-01-01"), Worker.Level.Senior, 4800, "Oleg");
+        assertEquals(worker, queryService.findWorkerByID(worker.getWorker_id()));
+    }
+    @Test
+    void testFindWorkerByIdTooBig() {
+        assertNull(queryService.findWorkerByID(999999999));
+    }
+    @Test
+    void testFindWorkerByIdTooSmall() {
+        assertNull(queryService.findWorkerByID(-1));
+    }
+    @Test
+    void testFindWorkerByNameWithIncorrectValue() {
+        assertNull(queryService.findWorkersByName("wwwww"));
+    }
+    @Test
+    void testFindWorkerByNameWithNumber() {
+        assertNull(queryService.findWorkersByName("2"));
+    }
+    @Test
+    void testFindWorkerByNameWithCorrectValue() {
+        List<Worker> expected = List.of(
+                new Worker(2,Date.valueOf("1992-03-15"), Worker.Level.Trainee,750,"Bogdan"),
+                new Worker(9,Date.valueOf("1996-02-18"), Worker.Level.Junior,1150,"Bogdan"));
+        assertArrayEquals(expected.toArray(),
+                queryService.findWorkersByName("Bogdan").toArray());
+    }
+
+    @AfterAll
+    static void dropDataBase() {
+        database.close();
+        System.out.println(
+                new File(new Configurations().getConfigAsString(ConfigsNames.TEST_DB_LOCATION_URL))
+                        .delete());
     }
 }

@@ -1,6 +1,7 @@
 package org.example.databasePopulate;
 
 import org.example.database.Database;
+import org.example.prefs.ConfigsNames;
 import org.example.prefs.Configurations;
 
 import java.nio.charset.StandardCharsets;
@@ -11,7 +12,7 @@ public class DatabasePopulateService {
     public static void populate_db(Database database) {
         try {
             String[] sqlScript = Files.readString(
-                    Path.of(Configurations.Configs.getConfigAsString(Configurations.POPULATE_DB_SQL)),
+                    Path.of(Configurations.Configs.getConfigAsString(ConfigsNames.POPULATE_DB_SQL)),
                     StandardCharsets.UTF_8
             ).split(";");
             for (String sql : sqlScript) {
